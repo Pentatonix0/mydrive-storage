@@ -1,0 +1,8 @@
+{
+  "client_id": "lebedev-local",
+  "server_host": "127.0.0.1",
+  "server_port": 9000,
+  "directory": "./client_files",
+  "max_connections": 8,
+  "transfer_mode": "sendfile"
+}

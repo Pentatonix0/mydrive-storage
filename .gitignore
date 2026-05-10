@@ -1,0 +1,4 @@
+build/
+client_files/
+server_storage/
+.DS_Store
