@@ -8,6 +8,7 @@ TCP file synchronization project for HW4. The implementation uses C++20 and Boos
 - Async server based on `boost::asio::async_read` / `async_write`.
 - Client manifest exchange before file upload.
 - Per-user server storage under `storage_root/client_id`.
+- One-way synchronization from client to server. Files that exist only on the server are ignored and are not downloaded to the client.
 - Parallel uploads through 1-32 independent TCP connections.
 - Two transfer modes:
   - `buffered`: userspace read/write chunks.
@@ -74,6 +75,7 @@ Start interactive CLI:
 Commands:
 
 ```text
+help
 sync
 status
 files
@@ -85,12 +87,16 @@ connections 32
 exit
 ```
 
+`help` prints command descriptions in Russian.
+
 Run one synchronization round and exit:
 
 ```bash
 ./build/mydrive_client --config config/client.json --mode buffered --sync-once
 ./build/mydrive_client --config config/client.json --mode sendfile --sync-once
 ```
+
+Synchronization is intentionally one-way. The client sends its local manifest, the server asks only for missing or changed client files, and uploads go only from the client to the server. If a file is added manually on the server, the client does not download it and does not treat it as part of the next synchronization round.
 
 ## Protocol
 
@@ -121,7 +127,36 @@ File content is not serialized as an object. The client first sends `UPLOAD_BEGI
 
 ## Demo Data
 
-For the assignment demonstration, prepare at least 10 files of at least 100 MB each:
+Use the helper scripts to generate benchmark files:
+
+```bash
+./generate_files.sh client_files
+./generate_big_file.sh client_files
+./generate_random.sh --n 10 --dir client_files
+```
+
+`generate_files.sh` creates:
+
+```text
+file_50mb.bin
+file_150mb.bin
+file_200mb.bin
+```
+
+`generate_big_file.sh` creates a large 1500 MB file:
+
+```text
+file_1500mb.bin
+```
+
+`generate_random.sh --n N` creates `N` files with random sizes from 105 MB to 205 MB:
+
+```bash
+./generate_random.sh --n 10
+./generate_random.sh --n 10 --dir client_files
+```
+
+For the assignment demonstration, also prepare at least 10 files of at least 100 MB each:
 
 ```bash
 mkdir -p client_files
@@ -143,4 +178,3 @@ Include in the report:
 - `buffered` vs `sendfile` measurements for 50 MB, 100 MB, 250 MB.
 - Observed MSS, TCP Window, slow start, congestion effects if present.
 - Useful commands: `ss`, `tcpdump`, `tc`, `sha256sum`/`shasum`.
-

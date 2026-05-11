@@ -421,11 +421,24 @@ void print_files(const ClientConfig& config) {
   }
 }
 
+void print_help() {
+  std::cout
+      << "Доступные команды:\n"
+      << "  help                         показать эту справку\n"
+      << "  sync                         просканировать директорию и синхронизировать файлы с сервером\n"
+      << "  status                       показать текущие настройки клиента и статистику последней синхронизации\n"
+      << "  files                        показать локальные файлы, их размеры и SHA-256\n"
+      << "  mode buffered                включить обычную передачу файла через буфер в памяти\n"
+      << "  mode sendfile                включить передачу через sendfile/DMA zero-copy\n"
+      << "  connections N                задать число параллельных TCP-соединений, N от 1 до 32\n"
+      << "  exit                         завершить клиент\n";
+}
+
 void run_cli(ClientConfig config) {
   std::optional<SyncStats> last_stats;
   std::cout << "MyDrive Client\n";
   print_status(config, last_stats);
-  std::cout << "\nCommands: sync, status, files, mode buffered|sendfile, connections 1..32, exit\n";
+  std::cout << "\nВведите help, чтобы увидеть доступные команды.\n";
 
   std::string line;
   while (std::cout << "\n> " && std::getline(std::cin, line)) {
@@ -434,7 +447,9 @@ void run_cli(ClientConfig config) {
       std::string command;
       input >> command;
 
-      if (command == "sync") {
+      if (command == "help") {
+        print_help();
+      } else if (command == "sync") {
         last_stats = synchronize(config);
         std::cout << "Sync completed. Uploaded: " << human_bytes(last_stats->bytes_uploaded)
                   << ", elapsed: ";
